@@ -1,31 +1,39 @@
-import React, {TextInput, useState} from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 
-const api = {
-	key: "c7dcb70972667c89f1e838d621c105f5",
-	base: "https://api.weatherstack.com/current",
-};
+import WeatherData from './weatherData';
 
-const Weather = () => {
-	const [query, setQuery] = useState("");
+const Weather = ({ loading, data, error }) => {
+	if (error) {
+		return <View style={styles.container}>
+			<Text style={styles.error}>{error}</Text>
+		</View>;
+	}
 
-
-	const search = (e) => {
-		fetch(`${api.base}?access_key=${api.key}&query=${query})`)
-		.then((res) => {
-			return res.json();
-		})
-		.then((result) => {
-			setQuery("");
-			console.log(result, "query");
-		})
+	if (!loading && !data) {
+		return null;
 	}
 
 	return (
-		<TextInput
-			onChange={(e) => setQuery(e.target.value)}
-			value={query}
-			onKeyPress={search}
-		/>
+		<View style={styles.container}>
+			{ loading ? <ActivityIndicator size="large" style={styles.activityIndicator} /> : <WeatherData data={data} /> }
+		</View>
 	);
-}
+};
+
+const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+		paddingVertical: 0,
+	},
+	error: {
+		color: 'red',
+		fontSize: 20,
+		textAlign: 'center',
+	},
+	activityIndicator: {
+		color: "red"
+	}
+});
+
 export default Weather;

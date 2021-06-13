@@ -1,76 +1,78 @@
-import { StatusBar } from 'expo-status-bar';
 import React, {useEffect, useState} from 'react';
-import {Button, Image, StyleSheet, Text, TextInput, View} from 'react-native';
+import {
+    Button,
+    Image,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
+    Alert,
+    Keyboard,
+    TouchableWithoutFeedback,
+    ImageBackground, SafeAreaView
+} from 'react-native';
+import {useDispatch, useSelector} from "react-redux";
+import {getLocation, getWeather} from "./store/actions/weatherActions";
 
-// https://app.nuclino.com/CDA2-React/React/MtoForecast-8ec14f27-08b1-40f2-a053-67e3913d088c
-const api = {
-  key: "c7dcb70972667c89f1e838d621c105f5",
-  base: "http://api.weatherstack.com/current",
-};
+import Form from "./components/form";
+import Weather from "./components/weather";
 
-export default function App() {
 
-  const [query, setQuery] = useState("");
-  const [weather, setWeather] = useState([]);
+const App = () => {
+    const dispatch = useDispatch();
+    const [search, setSearch] = useState('');
+    const [loading, setLoading] = useState(false);
+    const { data, error } = useSelector(state => state.weather);
 
-    console.log(query, "query");
-    console.log(weather, "weather")
-
-  const search = () => {
-
-    fetch(`${api.base}?access_key=${api.key}&query=${query})`)
-        .then((res) => {
-            return res.json();
-        })
-        .then((result) => {
-            setWeather(result);
-            setQuery("");
-            console.log(result);
-        })
-        .catch(error => console.log(error));
-  }
-
-  const GeoLoc = () => {
-
-  }
-    // console.log(weather.current.weather_icons[0]);
-
-  return (
-      <View style={styles.container}>
-          {weather == "" ?
-            <View>
-                <Text>{'toto'}</Text>
-                <TextInput
-                    onChangeText={text => setQuery(text)}
-                    value={query}
-                    onSubmitEditing={search}
-                    placeholder="useless placeholder"
-                />
-            </View>
-              :
-            <View style={styles.container}>
-              <Text>Open up App.js to start working on your app!toto</Text>
-              <TextInput
-                  onChangeText={e => setQuery(e)}
-                  value={query}
-                  onSubmitEditing={search}
-                  placeholder="useless placeholder"
-              />
-                    <Image source={{uri: `${weather.current.weather_icons[0]}`}} style={{width: 100, height: 100}}/>
-                    <Text>{weather.location.name}</Text>
-                    <Text>{weather.current.temperature}</Text>
-                    <StatusBar style="auto" />
-            </View>
+    // useEffect(() => {
+    //     dispatch(getWeather(''))
+    //     // dispatch(getLocation(''))
+    // }, [dispatch])
+    const searchSubmitHandler = () => {
+        if (search === '') {
+            return Alert.alert('Validation', 'City name is required!', [{ text: 'OK' }]);
         }
-      </View>
-  );
+
+        setLoading(true);
+        dispatch(getWeather(search, () => setLoading(false), () => setLoading(false)));
+        setSearch('');
+        Keyboard.dismiss();
+    };
+    const image = { uri: "https://reactjs.org/logo-og.png" };
+
+    return (
+        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+            <SafeAreaView style={styles.container}>
+                <ImageBackground style={styles.image} source={image}>
+                    <View style={styles.containerView} >
+                        <Weather loading={loading} data={data} error={error} />
+                        <Form search={search} onSetSearch={setSearch} onSubmit={searchSubmitHandler}/>
+                    </View>
+                </ImageBackground>
+            </SafeAreaView>
+        </TouchableWithoutFeedback>
+);
 }
 
+
+
+// https://app.nuclino.com/CDA2-React/React/MtoForecast-8ec14f27-08b1-40f2-a053-67e3913d088c
+
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    container: {
+      flex: 1,
+    },
+    image: {
+        flex: 1,
+        resizeMode: "cover",
+        justifyContent: "center"
+    },
+    containerView: {
+        flex: 1,
+        padding: 30
+    }
+
 });
+
+export default App;
